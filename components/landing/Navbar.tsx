@@ -3,19 +3,17 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { clsx } from "clsx";
-import { Menu, X, Sun, Moon } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { ChenEYELogoFull, ChenEYELogo } from "../icons/ChenEYELogo";
 import { LinkButton } from "../ui/Button";
+import { AnimatedThemeToggle } from "../ui/animated-theme-toggle";
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [theme, setTheme] = useState<"light" | "dark">("light");
+
 
   useEffect(() => {
-    const current = document.documentElement.getAttribute("data-theme") as "light" | "dark";
-    setTheme(current || "light");
-
     const onScroll = () => setScrolled(window.scrollY > 80);
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
@@ -27,13 +25,7 @@ export default function Navbar() {
     return () => { document.body.style.overflow = ""; };
   }, [mobileOpen]);
 
-  const toggleTheme = () => {
-    const next = theme === "light" ? "dark" : "light";
-    setTheme(next);
-    document.documentElement.setAttribute("data-theme", next);
-    document.documentElement.style.colorScheme = next;
-    localStorage.setItem("cheneye-theme", next);
-  };
+
 
   const navLinks = [
     { label: "How It Works", href: "#how-it-works" },
@@ -89,18 +81,7 @@ export default function Navbar() {
 
           {/* Desktop right */}
           <div className="hidden md:flex items-center gap-3">
-            <button
-              onClick={toggleTheme}
-              className={clsx(
-                "w-10 h-10 rounded-xl flex items-center justify-center transition-colors touch-target",
-                scrolled
-                  ? "text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]"
-                  : "text-white/80 hover:bg-white/10"
-              )}
-              aria-label="Toggle theme"
-            >
-              {theme === "light" ? <Moon size={18} /> : <Sun size={18} />}
-            </button>
+            <AnimatedThemeToggle scrolled={scrolled} />
             <LinkButton href="/login" variant="outline" size="sm"
               className={clsx(!scrolled && "!border-white/40 !text-white hover:!bg-white/10")}
             >
@@ -113,18 +94,7 @@ export default function Navbar() {
 
           {/* Mobile right */}
           <div className="flex md:hidden items-center gap-1">
-            <button
-              onClick={toggleTheme}
-              className={clsx(
-                "w-10 h-10 rounded-xl flex items-center justify-center transition-colors touch-target",
-                scrolled
-                  ? "text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]"
-                  : "text-white/80 hover:bg-white/10"
-              )}
-              aria-label="Toggle theme"
-            >
-              {theme === "light" ? <Moon size={18} /> : <Sun size={18} />}
-            </button>
+            <AnimatedThemeToggle scrolled={scrolled} />
             <button
               onClick={() => setMobileOpen(true)}
               className={clsx(

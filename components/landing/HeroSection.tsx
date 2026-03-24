@@ -18,6 +18,39 @@ function useReducedMotion() {
   return reduced;
 }
 
+function AnimatedStat({ value, label, gradient, delay, visible, prefersReduced }: {
+  value: number; label: string; gradient: string; delay: number; visible: boolean; prefersReduced: boolean;
+}) {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    if (!visible || prefersReduced) { setCount(value); return; }
+    const timeout = setTimeout(() => {
+      const duration = 1800;
+      const start = performance.now();
+      const step = (now: number) => {
+        const elapsed = now - start;
+        const progress = Math.min(elapsed / duration, 1);
+        // Ease-out cubic
+        const eased = 1 - Math.pow(1 - progress, 3);
+        setCount(Math.round(eased * value));
+        if (progress < 1) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    }, delay);
+    return () => clearTimeout(timeout);
+  }, [visible, value, delay, prefersReduced]);
+
+  return (
+    <div className="rounded-xl border border-white/8 p-3 text-center" style={{ background: 'rgba(255,255,255,0.03)' }}>
+      <p className={`text-xl font-bold bg-gradient-to-br ${gradient} bg-clip-text text-transparent`}>
+        {count.toLocaleString()}
+      </p>
+      <p className="text-[10px] text-white/40 mt-1 leading-tight">{label}</p>
+    </div>
+  );
+}
+
 export default function HeroSection() {
   const [visible, setVisible] = useState(false);
   const prefersReduced = useReducedMotion();
@@ -134,53 +167,86 @@ export default function HeroSection() {
             </div>
           </div>
 
-          {/* Right — phone mockup (desktop only) */}
+          {/* Right — Live Impact Dashboard (desktop only) */}
           <div
             className={clsx("hidden lg:flex justify-center mt-4 lg:mt-0", anim(800))}
             style={{ transitionDelay: "800ms" }}
           >
-            <div className={clsx("relative", !prefersReduced && "animate-float")}>
-              {/* Phone */}
-              <div className="w-52 h-[380px] sm:w-64 sm:h-[460px] lg:w-72 lg:h-[520px] rounded-[32px] sm:rounded-[40px] border-2 sm:border-4 border-white/15 p-3 sm:p-4 shadow-2xl" style={{
-                background: 'rgba(18,16,8,0.6)',
+            <div className="relative w-full max-w-md">
+              {/* Main dashboard card */}
+              <div className="rounded-3xl border border-white/10 p-6 shadow-2xl" style={{
+                background: 'rgba(18,16,8,0.55)',
                 backdropFilter: 'blur(24px)',
                 WebkitBackdropFilter: 'blur(24px)',
               }}>
-                {/* Status bar */}
-                <div className="flex items-center justify-between px-3 pt-1.5 pb-2">
-                  <span className="text-[10px] sm:text-xs text-white/50">9:41</span>
-                  <div className="w-14 sm:w-20 h-4 sm:h-6 rounded-full bg-black/50" />
-                  <span className="text-[10px] sm:text-xs text-white/50">📶</span>
+                {/* Header with live indicator */}
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-sm font-semibold text-white/90 tracking-wide uppercase">Community Impact</h3>
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase text-[#22C55E] border border-[#22C55E]/20" style={{ background: 'rgba(21,128,61,0.12)' }}>
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#22C55E] opacity-75" />
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-[#22C55E]" />
+                    </span>
+                    Live
+                  </span>
                 </div>
-                {/* App mockup content */}
-                <div className="space-y-2 sm:space-y-3 mt-1 sm:mt-2">
-                  <div className="h-7 sm:h-8 rounded-lg sm:rounded-xl bg-white/8 flex items-center px-2.5 gap-1.5">
-                    <div className="w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-[#FB923C]/40" />
-                    <span className="text-[10px] sm:text-xs text-white/40">New Report</span>
+
+                {/* Stats grid */}
+                <div className="grid grid-cols-3 gap-3 mb-6">
+                  <AnimatedStat value={12847} label="Reports Filed" gradient="from-[#FB923C] to-[#EA580C]" delay={1200} visible={visible} prefersReduced={prefersReduced} />
+                  <AnimatedStat value={9231} label="Actions Taken" gradient="from-[#F59E0B] to-[#D97706]" delay={1400} visible={visible} prefersReduced={prefersReduced} />
+                  <AnimatedStat value={4562} label="Active Citizens" gradient="from-[#E11D48] to-[#BE123C]" delay={1600} visible={visible} prefersReduced={prefersReduced} />
+                </div>
+
+                {/* Resolution rate bar */}
+                <div className="mb-6">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs text-white/50">Resolution Rate</span>
+                    <span className="text-xs font-semibold text-[#22C55E]">71.8%</span>
                   </div>
-                  <div className="h-24 sm:h-32 rounded-lg sm:rounded-xl bg-white/5 border border-white/8 flex items-center justify-center">
-                    <span className="text-2xl sm:text-4xl opacity-40">📸</span>
+                  <div className="h-1.5 rounded-full bg-white/8 overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all duration-[2000ms] ease-out"
+                      style={{
+                        width: visible ? '71.8%' : '0%',
+                        background: 'linear-gradient(90deg, #22C55E, #16A34A)',
+                        transitionDelay: '1800ms',
+                      }}
+                    />
                   </div>
-                  <div className="space-y-1.5">
-                    <div className="h-3 sm:h-4 rounded bg-white/8 w-3/4" />
-                    <div className="h-3 sm:h-4 rounded bg-white/8 w-1/2" />
-                  </div>
-                  <div className="h-9 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #EA580C, #F59E0B)' }}>
-                    <span className="text-[10px] sm:text-xs text-white font-medium">Submit Report</span>
-                  </div>
+                </div>
+
+                {/* Recent activity feed */}
+                <div className="space-y-2.5">
+                  <p className="text-[10px] uppercase tracking-widest text-white/30 font-medium mb-3">Recent Activity</p>
+                  {[
+                    { emoji: "🚫", text: "No helmet — T. Nagar", time: "2m ago", color: "#FB923C" },
+                    { emoji: "⚡", text: "Signal jump — Adyar", time: "5m ago", color: "#F59E0B" },
+                    { emoji: "🚗", text: "Wrong lane — ECR", time: "8m ago", color: "#E11D48" },
+                    { emoji: "✅", text: "Action taken — Anna Salai", time: "12m ago", color: "#22C55E" },
+                  ].map((item, i) => (
+                    <div
+                      key={item.text}
+                      className="flex items-center gap-3 px-3 py-2 rounded-xl border border-white/5 transition-all duration-500"
+                      style={{
+                        background: 'rgba(255,255,255,0.03)',
+                        opacity: visible ? 1 : 0,
+                        transform: visible ? 'translateX(0)' : 'translateX(20px)',
+                        transitionDelay: `${2000 + i * 200}ms`,
+                      }}
+                    >
+                      <span className="text-sm w-6 text-center flex-shrink-0">{item.emoji}</span>
+                      <span className="text-xs text-white/70 flex-1 truncate">{item.text}</span>
+                      <span className="text-[10px] text-white/30 flex-shrink-0">{item.time}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
 
-              {/* Floating cards */}
-              <div className="absolute -left-4 sm:-left-14 lg:-left-16 top-12 sm:top-16 lg:top-20 px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl shadow-lg border border-white/10" style={{ background: 'rgba(18,16,8,0.5)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', animation: 'float 4s ease-in-out infinite 0.5s' }}>
-                <span className="text-xs sm:text-sm text-white/80">🚫 No Helmet</span>
-              </div>
-              <div className="absolute -right-4 sm:-right-14 lg:-right-16 top-40 sm:top-48 lg:top-52 px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl shadow-lg border border-white/10" style={{ background: 'rgba(18,16,8,0.5)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', animation: 'float 4s ease-in-out infinite 1s' }}>
-                <span className="text-xs sm:text-sm text-white/80">⚡ Signal Jump</span>
-              </div>
-              <div className="absolute -left-2 sm:-left-10 bottom-16 sm:bottom-20 lg:bottom-24 px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl shadow-lg border border-[#22C55E]/20" style={{ background: 'rgba(21,128,61,0.15)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', animation: 'float 4s ease-in-out infinite 1.5s' }}>
-                <span className="text-xs sm:text-sm text-[#22C55E]">✅ Action Taken</span>
-              </div>
+              {/* Ambient glow behind card */}
+              <div className="absolute -inset-4 -z-10 rounded-3xl opacity-30 blur-2xl" style={{
+                background: 'linear-gradient(135deg, rgba(251,146,60,0.15), rgba(225,29,72,0.1))',
+              }} />
             </div>
           </div>
         </div>
